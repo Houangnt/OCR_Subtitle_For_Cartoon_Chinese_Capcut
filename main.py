@@ -90,7 +90,7 @@ output_file = 'output.srt'
 if not os.path.exists(frames_folder):
     os.makedirs(frames_folder)
 
-frames_per_second = 8
+frames_per_second = 5
 extract_frames(video_path, frames_folder, frames_per_second)
 process_frames(frames_folder, output_file, frames_per_second)
 
