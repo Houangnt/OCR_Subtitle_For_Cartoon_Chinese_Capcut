@@ -26,7 +26,6 @@ def convert_ms_to_time(ms):
 def adjust_subtitle_times(lines):
     adjusted_lines = []
     for i in range(len(lines)):
-        adjusted_lines.append(lines[i])
         if '-->' in lines[i]:
             start_time, end_time = lines[i].split(' --> ')
             start_time_ms = convert_time_to_ms(start_time.strip())
@@ -36,13 +35,16 @@ def adjust_subtitle_times(lines):
                 next_start_time_ms = convert_time_to_ms(next_start_time)
                 new_end_time_ms = max(start_time_ms + 50, next_start_time_ms - 50)
                 new_end_time = convert_ms_to_time(new_end_time_ms)
-                adjusted_lines[-1] = f'{start_time.strip()} --> {new_end_time}\n'
+                adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
             else:
                 new_end_time_ms = start_time_ms + 2000  # Thêm 2 giây cho dòng cuối
                 new_end_time = convert_ms_to_time(new_end_time_ms)
-                adjusted_lines[-1] = f'{start_time.strip()} --> {new_end_time}\n'
+                adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
+        else:
+            adjusted_lines.append(lines[i])
     
     return adjusted_lines
+
 
 def process_srt_file(input_path, output_path):
     lines = read_srt(input_path)
