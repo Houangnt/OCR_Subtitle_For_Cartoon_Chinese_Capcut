@@ -1,5 +1,6 @@
 import re
 import os
+
 def read_srt(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
@@ -25,6 +26,8 @@ def convert_ms_to_time(ms):
 
 def adjust_subtitle_times(lines):
     adjusted_lines = []
+    max_display_time = 3000  # Thời gian tối đa hiển thị cho mỗi đoạn text là 3 giây (3000 milliseconds)
+    
     for i in range(len(lines)):
         if '-->' in lines[i]:
             start_time, end_time = lines[i].split(' --> ')
@@ -34,12 +37,15 @@ def adjust_subtitle_times(lines):
                 next_start_time = lines[i + 4].split(' --> ')[0].strip()
                 next_start_time_ms = convert_time_to_ms(next_start_time)
                 new_end_time_ms = max(start_time_ms + 50, next_start_time_ms - 50)
-                new_end_time = convert_ms_to_time(new_end_time_ms)
-                adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
             else:
                 new_end_time_ms = start_time_ms + 2000  # Thêm 2 giây cho dòng cuối
-                new_end_time = convert_ms_to_time(new_end_time_ms)
-                adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
+            
+            # Kiểm tra và điều chỉnh thời gian hiển thị nếu quá lớn
+            if new_end_time_ms - start_time_ms > max_display_time:
+                new_end_time_ms = start_time_ms + max_display_time
+            
+            new_end_time = convert_ms_to_time(new_end_time_ms)
+            adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
         else:
             adjusted_lines.append(lines[i])
     
