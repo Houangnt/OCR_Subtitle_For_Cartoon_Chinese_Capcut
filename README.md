@@ -1,5 +1,5 @@
-conda create --name OCR-China python=3.8
-conda activate OCR-China
+conda create --name OCR-China python=3.8 <br>
+conda activate OCR-China <br>
 pip install -r requirements.txt
 
 ### Run OCR for video
