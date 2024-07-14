@@ -1,5 +1,5 @@
 import re
-
+import os
 def read_srt(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
@@ -45,15 +45,23 @@ def adjust_subtitle_times(lines):
     
     return adjusted_lines
 
-
 def process_srt_file(input_path, output_path):
     lines = read_srt(input_path)
     adjusted_lines = adjust_subtitle_times(lines)
     write_srt(adjusted_lines, output_path)
 
-# Đường dẫn tệp đầu vào và đầu ra
-input_srt_path = 'output.srt'
-output_srt_path = 'output_post.srt'
+# Đoạn này sử dụng cho mục đích demo
+if __name__ == "__main__":
+    input_srt_folder = 'video/'
+    output_srt_folder = 'srt_files_processed/'
 
-# Thực hiện xử lý
-process_srt_file(input_srt_path, output_srt_path)
+    if not os.path.exists(output_srt_folder):
+        os.makedirs(output_srt_folder)
+
+    for filename in os.listdir(input_srt_folder):
+        if filename.endswith(".srt"):
+            input_path = os.path.join(input_srt_folder, filename)
+            output_path = os.path.join(output_srt_folder, filename)
+            process_srt_file(input_path, output_path)
+
+    print("Hoàn thành xử lý các file .srt!")
