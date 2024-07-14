@@ -1,6 +1,6 @@
+import os
 import cv2
 from paddleocr import PaddleOCR
-import os
 import CharSimilarity
 
 ocr = PaddleOCR(use_angle_cls=True, lang='ch')
@@ -12,6 +12,9 @@ def char_similarity(str1, str2):
 
 def extract_frames(video_path, output_folder, frames_per_second=4):
     cap = cv2.VideoCapture(video_path)
+    # Hiển thị FPS của video
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"Video FPS: {fps}")
     count = 0
     fps = cap.get(cv2.CAP_PROP_FPS)
     interval = int(fps / frames_per_second)
@@ -83,15 +86,27 @@ def process_frames(frames_folder, output_file, frames_per_second):
                         last_written_text = text
                         index += 1
 
-video_path = 'video/Video1.mp4'
-frames_folder = 'frames'
-output_file = 'output.srt'
+def process_videos_in_folder(root_folder):
+    for dirpath, _, filenames in os.walk(root_folder):
+        for filename in filenames:
+            if filename.endswith('.mp4'):
+                video_path = os.path.join(dirpath, filename)
+                video_name = os.path.splitext(filename)[0]
+                frames_folder = os.path.join(dirpath, f'{video_name}_frames')
+                output_file = os.path.join(dirpath, f'{video_name}.srt')
+                
+                if not os.path.exists(frames_folder):
+                    os.makedirs(frames_folder)
+                
+                frames_per_second = 5
+                extract_frames(video_path, frames_folder, frames_per_second)
+                process_frames(frames_folder, output_file, frames_per_second)
+                
+                print(f"Processed video: {filename}")
 
-if not os.path.exists(frames_folder):
-    os.makedirs(frames_folder)
+# Đường dẫn tới thư mục chứa các video
+root_folder = 'video'
 
-frames_per_second = 5
-extract_frames(video_path, frames_folder, frames_per_second)
-process_frames(frames_folder, output_file, frames_per_second)
+process_videos_in_folder(root_folder)
 
-print("Hoàn thành trích xuất phụ đề!")
+print("Hoàn thành trích xuất phụ đề cho tất cả các video!")
