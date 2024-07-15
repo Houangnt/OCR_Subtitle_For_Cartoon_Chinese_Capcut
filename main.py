@@ -1,16 +1,10 @@
 import os
 import cv2
 from paddleocr import PaddleOCR
-import CharSimilarity
 
-ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+ocr = PaddleOCR(use_angle_cls=False, lang='ch')
 
-def char_similarity(str1, str2):
-    if not str1 or not str2:
-        return 0.0
-    return CharSimilarity.similarity(str1, str2, tone=True, shape=False)
-
-def extract_frames(video_path, output_folder, frames_per_second=4):
+def extract_frames(video_path, output_folder, frames_per_second):
     cap = cv2.VideoCapture(video_path)
     # Hiển thị FPS của video
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -31,16 +25,14 @@ def extract_frames(video_path, output_folder, frames_per_second=4):
 
 def crop_subtitle(image):
     height, width, _ = image.shape
-    crop_top = int(height * 0.85)
+    crop_top = int(height * 0.9)
     crop_bottom = height
-    crop_left = 0
-    crop_right = width
+    crop_left = int(width * 0.2)  
+    crop_right = int(width * 0.8)  
     cropped_image = image[crop_top:crop_bottom, crop_left:crop_right]
     return cropped_image
 
 def process_frames(frames_folder, output_file, frames_per_second):
-    last_written_text = ""
-    
     with open(output_file, 'w', encoding='utf-8') as f:
         index = 1
         for frame_name in sorted(os.listdir(frames_folder), key=lambda x: int(x.split('_')[1].split('.')[0]) if 'frame_' in x else float('inf')):
@@ -63,28 +55,24 @@ def process_frames(frames_folder, output_file, frames_per_second):
                 end_time = start_time + 1 / frames_per_second
 
                 for text in text_list:
-                    similarity = char_similarity(text, last_written_text)
-                    
-                    if similarity < 0.85:
-                        start_hours = int(start_time // 3600)
-                        start_minutes = int((start_time % 3600) // 60)
-                        start_seconds = int(start_time % 60)
-                        start_milliseconds = int((start_time % 1) * 1000)
+                    start_hours = int(start_time // 3600)
+                    start_minutes = int((start_time % 3600) // 60)
+                    start_seconds = int(start_time % 60)
+                    start_milliseconds = int((start_time % 1) * 1000)
 
-                        end_hours = int(end_time // 3600)
-                        end_minutes = int((end_time % 3600) // 60)
-                        end_seconds = int(end_time % 60)
-                        end_milliseconds = int((end_time % 1) * 1000)
+                    end_hours = int(end_time // 3600)
+                    end_minutes = int((end_time % 3600) // 60)
+                    end_seconds = int(end_time % 60)
+                    end_milliseconds = int((end_time % 1) * 1000)
 
-                        time_format = f"{start_hours:02}:{start_minutes:02}:{start_seconds:02},{start_milliseconds:03} --> {end_hours:02}:{end_minutes:02}:{end_seconds:02},{end_milliseconds:03}"
+                    time_format = f"{start_hours:02}:{start_minutes:02}:{start_seconds:02},{start_milliseconds:03} --> {end_hours:02}:{end_minutes:02}:{end_seconds:02},{end_milliseconds:03}"
 
-                        f.write(f"{index}\n")
-                        f.write(f"{time_format}\n")
-                        f.write(text + '\n')
-                        f.write('\n')
-                        
-                        last_written_text = text
-                        index += 1
+                    f.write(f"{index}\n")
+                    f.write(f"{time_format}\n")
+                    f.write(text + '\n')
+                    f.write('\n')
+
+                    index += 1
 
 def process_videos_in_folder(root_folder):
     for dirpath, _, filenames in os.walk(root_folder):
@@ -98,7 +86,7 @@ def process_videos_in_folder(root_folder):
                 if not os.path.exists(frames_folder):
                     os.makedirs(frames_folder)
                 
-                frames_per_second = 5
+                frames_per_second = 30
                 extract_frames(video_path, frames_folder, frames_per_second)
                 process_frames(frames_folder, output_file, frames_per_second)
                 
@@ -107,6 +95,7 @@ def process_videos_in_folder(root_folder):
 # Đường dẫn tới thư mục chứa các video
 root_folder = 'video'
 
+# Xử lý các video trong thư mục gốc
 process_videos_in_folder(root_folder)
 
 print("Hoàn thành trích xuất phụ đề cho tất cả các video!")
