@@ -1,10 +1,33 @@
 import os
-import CharSimilarity  
+import CharSimilarity
+import sijiao_dict
 
-def char_similarity(str1, str2):
-    if not str1 or not str2:
-        return 0.0
-    return CharSimilarity.similarity(str1, str2, tone=True, shape=False)
+def similarity(x, y):
+    """ 
+    Returns the similarity between two lists.
+    
+    Parameters:
+    x (list): First list of elements.
+    y (list): Second list of elements.
+    
+    Returns:
+    float: Jaccard similarity between two lists.
+    """
+    intersection_cardinality = len(set(x).intersection(set(y)))
+    union_cardinality = len(set(x).union(set(y)))
+    return intersection_cardinality / float(union_cardinality)
+def map_characters_to_numbers(text, char_map):
+    """
+    Map characters in the input text to their corresponding numbers using the provided character map.
+    
+    Parameters:
+    text (str): Input string with Chinese characters.
+    char_map (dict): Dictionary mapping Chinese characters to numbers.
+    
+    Returns:
+    list: List of numbers corresponding to the input characters.
+    """
+    return [char_map[char] for char in text if char in char_map]
 
 def merge_subtitles(srt_content):
     subtitles = srt_content.strip().split('\n\n')
@@ -28,7 +51,7 @@ def merge_subtitles(srt_content):
             current_start = start_time
             current_end = end_time
             current_text = text
-        elif char_similarity(current_text, text) == 1:
+        elif similarity(map_characters_to_numbers(current_text, sijiao_dict.dic), map_characters_to_numbers(text, sijiao_dict.dic)) == 1:
             current_end = end_time
         else:
             merged_subtitles.append(f'{len(merged_subtitles) + 1}\n{current_start} --> {current_end}\n{current_text}')
@@ -60,7 +83,7 @@ def process_srt_files(input_folder, output_folder):
     
     print("Processing completed!")
 
-# Example usage
+# Ví dụ sử dụng
 input_folder = 'srt_files_processed'
 output_folder = 'capcut_format'
 
