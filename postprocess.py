@@ -1,7 +1,7 @@
 import os
 import re
 import CharSimilarity
-
+import sijiao_dict
 def read_srt(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
@@ -17,15 +17,47 @@ def char_similarity(str1, str2):
     if not str1 or not str2:
         return 0.0
     return CharSimilarity.similarity(str1, str2, tone=True, shape=False)
-
+def similarity(x, y):
+    """ 
+    Returns the similarity between two lists.
+    
+    Parameters:
+    x (list): First list of elements.
+    y (list): Second list of elements.
+    
+    Returns:
+    float: Jaccard similarity between two lists.
+    """
+    intersection_cardinality = len(set(x).intersection(set(y)))
+    union_cardinality = len(set(x).union(set(y)))
+    return intersection_cardinality / float(union_cardinality)
+def map_characters_to_numbers(text, char_map):
+    """
+    Map characters in the input text to their corresponding numbers using the provided character map.
+    
+    Parameters:
+    text (str): Input string with Chinese characters.
+    char_map (dict): Dictionary mapping Chinese characters to numbers.
+    
+    Returns:
+    list: List of numbers corresponding to the input characters.
+    """
+    return [char_map[char] for char in text if char in char_map]
 def process_srt(subtitles):
     for i in range(1, len(subtitles) - 1):
+        text_A = subtitles[i]['text']
         text_B = subtitles[i-1]['text']
         text_C = subtitles[i+1]['text']
-        
+
+        mapped_A = map_characters_to_numbers(text_A, sijiao_dict.dic)
+        mapped_B = map_characters_to_numbers(text_B, sijiao_dict.dic)
+        mapped_C = map_characters_to_numbers(text_C, sijiao_dict.dic)
+
+        sim_AC = similarity(mapped_A, mapped_C)
         sim_BC = char_similarity(text_B, text_C)
-        
-        if sim_BC == 1.0:
+        sim_AB = similarity(mapped_A, mapped_B)
+
+        if sim_BC == 1.0 and sim_AC>0.8 and sim_AB>0.8:
             subtitles[i]['text'] = text_B
             
     return subtitles
