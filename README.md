@@ -8,5 +8,8 @@ python main.py
 ### Export to output capcut format
 python postprocess.py
 
+### Optimize srt format
+python capcut.py
+
 ### Demo output capcut format
 ![res](https://github.com/Houangnt/OCR_Subtitle_For_Cartoon_Chinese_Capcut/blob/main/output.png?raw=true)
