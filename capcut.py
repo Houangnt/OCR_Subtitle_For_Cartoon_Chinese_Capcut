@@ -16,6 +16,7 @@ def similarity(x, y):
     intersection_cardinality = len(set(x).intersection(set(y)))
     union_cardinality = len(set(x).union(set(y)))
     return intersection_cardinality / float(union_cardinality)
+
 def map_characters_to_numbers(text, char_map):
     """
     Map characters in the input text to their corresponding numbers using the provided character map.
@@ -47,6 +48,10 @@ def merge_subtitles(srt_content):
         
         start_time, end_time = time_range.split(' --> ')
         
+        # Check if the current end time is greater than the new start time and adjust if needed
+        if current_end and start_time <= current_end:
+            start_time = current_end
+            
         if current_text is None:
             current_start = start_time
             current_end = end_time
