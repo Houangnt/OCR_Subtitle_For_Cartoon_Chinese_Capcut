@@ -54,12 +54,14 @@ def process_srt(subtitles):
         mapped_C = map_characters_to_numbers(text_C, sijiao_dict.dic)
 
         sim_AC = similarity(mapped_A, mapped_C)
-        sim_BC = char_similarity(text_B, text_C)
+        sim_BC = similarity(mapped_B, mapped_C)
         sim_AB = similarity(mapped_A, mapped_B)
-
-        if sim_BC == 1.0 and sim_AC>0.8 and sim_AB>0.8:
+        sim_AB_v2 = char_similarity(text_A, text_B)
+        if sim_AB>=0.6:
             subtitles[i]['text'] = text_B
-            
+        elif sim_AB<0.6:
+            subtitles[i]['text'] = text_A
+                
     return subtitles
 
 def write_srt(subtitles, output_file):
