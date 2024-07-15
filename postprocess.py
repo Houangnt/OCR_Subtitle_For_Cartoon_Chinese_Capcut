@@ -1,73 +1,56 @@
-import re
 import os
+import re
+import CharSimilarity
 
 def read_srt(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-    return lines
+        content = file.read()
+    return content
 
-def write_srt(lines, file_path):
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.writelines(lines)
+def parse_srt(content):
+    pattern = re.compile(r'(\d+)\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})\n(.*?)\n\n', re.DOTALL)
+    matches = pattern.findall(content)
+    subtitles = [{'index': m[0], 'start': m[1], 'end': m[2], 'text': m[3].replace('\n', ' ')} for m in matches]
+    return subtitles
 
-def convert_time_to_ms(time_str):
-    hours, minutes, seconds, milliseconds = map(int, re.split('[:,]', time_str))
-    total_ms = (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds
-    return total_ms
+def char_similarity(str1, str2):
+    if not str1 or not str2:
+        return 0.0
+    return CharSimilarity.similarity(str1, str2, tone=True, shape=False)
 
-def convert_ms_to_time(ms):
-    hours = ms // 3600000
-    ms %= 3600000
-    minutes = ms // 60000
-    ms %= 60000
-    seconds = ms // 1000
-    milliseconds = ms % 1000
-    return f'{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}'
-
-def adjust_subtitle_times(lines):
-    adjusted_lines = []
-    max_display_time = 3000  # Thời gian tối đa hiển thị cho mỗi đoạn text là 3 giây (3000 milliseconds)
-    
-    for i in range(len(lines)):
-        if '-->' in lines[i]:
-            start_time, end_time = lines[i].split(' --> ')
-            start_time_ms = convert_time_to_ms(start_time.strip())
+def process_srt(subtitles):
+    for i in range(1, len(subtitles) - 1):
+        text_B = subtitles[i-1]['text']
+        text_C = subtitles[i+1]['text']
+        
+        sim_BC = char_similarity(text_B, text_C)
+        
+        if sim_BC == 1.0:
+            subtitles[i]['text'] = text_B
             
-            if i + 4 < len(lines) and '-->' in lines[i + 4]:
-                next_start_time = lines[i + 4].split(' --> ')[0].strip()
-                next_start_time_ms = convert_time_to_ms(next_start_time)
-                new_end_time_ms = max(start_time_ms + 50, next_start_time_ms - 50)
-            else:
-                new_end_time_ms = start_time_ms + 2000  # Thêm 2 giây cho dòng cuối
-            
-            # Kiểm tra và điều chỉnh thời gian hiển thị nếu quá lớn
-            if new_end_time_ms - start_time_ms > max_display_time:
-                new_end_time_ms = start_time_ms + max_display_time
-            
-            new_end_time = convert_ms_to_time(new_end_time_ms)
-            adjusted_lines.append(f'{start_time.strip()} --> {new_end_time}\n')
-        else:
-            adjusted_lines.append(lines[i])
-    
-    return adjusted_lines
+    return subtitles
 
-def process_srt_file(input_path, output_path):
-    lines = read_srt(input_path)
-    adjusted_lines = adjust_subtitle_times(lines)
-    write_srt(adjusted_lines, output_path)
+def write_srt(subtitles, output_file):
+    with open(output_file, 'w', encoding='utf-8') as file:
+        for sub in subtitles:
+            file.write(f"{sub['index']}\n{sub['start']} --> {sub['end']}\n{sub['text']}\n\n")
 
-# Đoạn này sử dụng cho mục đích demo
-if __name__ == "__main__":
-    input_srt_folder = 'video/'
-    output_srt_folder = 'srt_files_processed/'
+def process_srt_files(input_folder, output_folder):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
-    if not os.path.exists(output_srt_folder):
-        os.makedirs(output_srt_folder)
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.srt'):
+            input_file = os.path.join(input_folder, filename)
+            output_file = os.path.join(output_folder, filename)
 
-    for filename in os.listdir(input_srt_folder):
-        if filename.endswith(".srt"):
-            input_path = os.path.join(input_srt_folder, filename)
-            output_path = os.path.join(output_srt_folder, filename)
-            process_srt_file(input_path, output_path)
+            srt_content = read_srt(input_file)
+            subtitles = parse_srt(srt_content)
+            processed_subtitles = process_srt(subtitles)
+            write_srt(processed_subtitles, output_file)
 
-    print("Hoàn thành xử lý các file .srt!")
+# Example usage
+input_folder = 'video/'
+output_folder = 'srt_files_processed/'
+
+process_srt_files(input_folder, output_folder)
