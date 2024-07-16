@@ -11,7 +11,7 @@ python main.py --format 2
 ### Export to output capcut format
 python postprocess.py
 
-### Optimize srt format
+### Optimize timestemp for srt format
 python capcut.py
 
 ### Demo output capcut format
