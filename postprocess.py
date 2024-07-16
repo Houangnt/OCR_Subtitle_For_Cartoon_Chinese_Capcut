@@ -30,6 +30,8 @@ def similarity(x, y):
     """
     intersection_cardinality = len(set(x).intersection(set(y)))
     union_cardinality = len(set(x).union(set(y)))
+    if union_cardinality == 0:
+        return 0.0
     return intersection_cardinality / float(union_cardinality)
 def map_characters_to_numbers(text, char_map):
     """
@@ -59,9 +61,10 @@ def process_srt(subtitles):
         sim_AB_v2 = char_similarity(text_A, text_B)
         if sim_AB>=0.6:
             subtitles[i]['text'] = text_B
+
         elif sim_AB<0.6:
             subtitles[i]['text'] = text_A
-                
+
     return subtitles
 
 def write_srt(subtitles, output_file):
