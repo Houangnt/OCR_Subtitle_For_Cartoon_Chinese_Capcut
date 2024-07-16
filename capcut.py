@@ -11,10 +11,12 @@ def similarity(x, y):
     y (list): Second list of elements.
     
     Returns:
-    float: Jaccard similarity between two lists.
+    float: Similarity between two lists.
     """
     intersection_cardinality = len(set(x).intersection(set(y)))
     union_cardinality = len(set(x).union(set(y)))
+    if union_cardinality == 0:
+        return 0.0
     return intersection_cardinality / float(union_cardinality)
 
 def map_characters_to_numbers(text, char_map):
