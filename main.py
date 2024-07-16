@@ -1,32 +1,40 @@
 import os
 import cv2
+import argparse
 from paddleocr import PaddleOCR
 
 ocr = PaddleOCR(use_angle_cls=False, lang='ch')
 
-def extract_frames(video_path, output_folder, frames_per_second):
+def extract_frames(video_path, output_folder, frames_per_second, crop_format):
     cap = cv2.VideoCapture(video_path)
     # Hiển thị FPS của video
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video FPS: {fps}")
     count = 0
-    fps = cap.get(cv2.CAP_PROP_FPS)
     interval = int(fps / frames_per_second)
 
     success, image = cap.read()
     while success:
         frame_id = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
         if frame_id % interval == 0:
-            cropped_image = crop_subtitle(image)
+            cropped_image = crop_subtitle(image, crop_format)
             cv2.imwrite(os.path.join(output_folder, f"frame_{count}.jpg"), cropped_image)
             count += 1
         success, image = cap.read()
     cap.release()
 
-def crop_subtitle(image):
+def crop_subtitle(image, crop_format):
     height, width, _ = image.shape
-    crop_top = int(height * 0.9)
-    crop_bottom = height
+
+    if crop_format == 1:
+        crop_top = int(height * 0.920)
+        crop_bottom = int(height * 0.98)
+    elif crop_format == 2:
+        crop_top = int(height * 0.825)
+        crop_bottom = int(height * 0.9)
+    else:
+        raise ValueError("Invalid crop format specified. Use 1 or 2.")
+
     crop_left = int(width * 0.2)  
     crop_right = int(width * 0.8)  
     cropped_image = image[crop_top:crop_bottom, crop_left:crop_right]
@@ -74,7 +82,8 @@ def process_frames(frames_folder, output_file, frames_per_second):
 
                     index += 1
 
-def process_videos_in_folder(root_folder):
+def process_videos_in_folder(crop_format):
+    root_folder = 'video'
     for dirpath, _, filenames in os.walk(root_folder):
         for filename in filenames:
             if filename.endswith('.mp4'):
@@ -87,15 +96,19 @@ def process_videos_in_folder(root_folder):
                     os.makedirs(frames_folder)
                 
                 frames_per_second = 30
-                extract_frames(video_path, frames_folder, frames_per_second)
+                extract_frames(video_path, frames_folder, frames_per_second, crop_format)
                 process_frames(frames_folder, output_file, frames_per_second)
                 
                 print(f"Processed video: {filename}")
 
-# Đường dẫn tới thư mục chứa các video
-root_folder = 'video'
+def main():
+    parser = argparse.ArgumentParser(description='Extract subtitles from videos.')
+    parser.add_argument('--format', type=int, choices=[1, 2], required=True, help='Crop format (low or high).')
+    
+    args = parser.parse_args()
+    
+    process_videos_in_folder(args.format)
+    print("Subtitle extraction completed for all videos!")
 
-# Xử lý các video trong thư mục gốc
-process_videos_in_folder(root_folder)
-
-print("Hoàn thành trích xuất phụ đề cho tất cả các video!")
+if __name__ == "__main__":
+    main()
