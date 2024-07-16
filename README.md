@@ -3,7 +3,9 @@ conda activate OCR-China <br>
 pip install -r requirements.txt
 
 ### Run OCR for video
-python main.py 
+python main.py --format 1 (with low subtitle) <br>
+or <br>
+python main.py --format 2 (with high subtitle)
 
 ### Export to output capcut format
 python postprocess.py
