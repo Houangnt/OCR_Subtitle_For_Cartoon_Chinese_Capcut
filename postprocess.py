@@ -59,10 +59,10 @@ def process_srt(subtitles):
         sim_BC = similarity(mapped_B, mapped_C)
         sim_AB = similarity(mapped_A, mapped_B)
         sim_AB_v2 = char_similarity(text_A, text_B)
-        if sim_AB>=0.6:
+        if sim_AB>=0.68:
             subtitles[i]['text'] = text_B
 
-        elif sim_AB<0.6:
+        elif sim_AB<0.68:
             subtitles[i]['text'] = text_A
 
     return subtitles
