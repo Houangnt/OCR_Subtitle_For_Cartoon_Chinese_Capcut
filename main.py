@@ -7,7 +7,6 @@ ocr = PaddleOCR(use_angle_cls=False, lang='ch')
 
 def extract_frames(video_path, output_folder, frames_per_second, crop_format):
     cap = cv2.VideoCapture(video_path)
-    # Hiển thị FPS của video
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video FPS: {fps}")
     count = 0
@@ -27,10 +26,10 @@ def crop_subtitle(image, crop_format):
     height, width, _ = image.shape
 
     if crop_format == 1:
-        crop_top = int(height * 0.920)
-        crop_bottom = int(height * 0.98)
+        crop_top = int(height * 0.92)
+        crop_bottom = int(height * 0.99)
     elif crop_format == 2:
-        crop_top = int(height * 0.825)
+        crop_top = int(height * 0.83)
         crop_bottom = int(height * 0.9)
     else:
         raise ValueError("Invalid crop format specified. Use 1 or 2.")
@@ -51,33 +50,31 @@ def process_frames(frames_folder, output_file, frames_per_second):
 
                 if results and len(results) > 0:
                     result_list = results[0]
-                    if result_list:
-                        text_list = [box[1][0] for box in result_list]
-                    else:
-                        text_list = []
+                    text_list = [box[1][0] for box in result_list] if result_list else []
+                    combined_text = ' '.join(text_list) if len(text_list) >= 2 else text_list[0] if text_list else ""
                 else:
-                    text_list = []
+                    combined_text = ""
 
                 frame_number = int(frame_name.split('_')[1].split('.')[0])
                 start_time = frame_number / frames_per_second
                 end_time = start_time + 1 / frames_per_second
 
-                for text in text_list:
-                    start_hours = int(start_time // 3600)
-                    start_minutes = int((start_time % 3600) // 60)
-                    start_seconds = int(start_time % 60)
-                    start_milliseconds = int((start_time % 1) * 1000)
+                start_hours = int(start_time // 3600)
+                start_minutes = int((start_time % 3600) // 60)
+                start_seconds = int(start_time % 60)
+                start_milliseconds = int((start_time % 1) * 1000)
 
-                    end_hours = int(end_time // 3600)
-                    end_minutes = int((end_time % 3600) // 60)
-                    end_seconds = int(end_time % 60)
-                    end_milliseconds = int((end_time % 1) * 1000)
+                end_hours = int(end_time // 3600)
+                end_minutes = int((end_time % 3600) // 60)
+                end_seconds = int(end_time % 60)
+                end_milliseconds = int((end_time % 1) * 1000)
 
-                    time_format = f"{start_hours:02}:{start_minutes:02}:{start_seconds:02},{start_milliseconds:03} --> {end_hours:02}:{end_minutes:02}:{end_seconds:02},{end_milliseconds:03}"
+                time_format = f"{start_hours:02}:{start_minutes:02}:{start_seconds:02},{start_milliseconds:03} --> {end_hours:02}:{end_minutes:02}:{end_seconds:02},{end_milliseconds:03}"
 
+                if combined_text:
                     f.write(f"{index}\n")
                     f.write(f"{time_format}\n")
-                    f.write(text + '\n')
+                    f.write(combined_text + '\n')
                     f.write('\n')
 
                     index += 1
