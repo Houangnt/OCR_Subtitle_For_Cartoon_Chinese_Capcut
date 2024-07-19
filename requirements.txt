@@ -6,3 +6,5 @@ pypinyin
 numpy
 python-Levenshtein 
 Pillow
+googletrans==3.1.0a0
+nltk
