@@ -1,7 +1,7 @@
 conda create --name OCR-China python=3.8 <br>
 conda activate OCR-China <br>
-pip install -r requirements.txt
-
+pip install -r requirements.txt <br>
+if use Windows download font: https://github.com/zerongjiang/footmap/blob/master/res/STHeiti-Light.ttc 
 ### Run OCR for video
 -Case 1: With low subtitle run: <br>
 python main.py --format 1  <br>
